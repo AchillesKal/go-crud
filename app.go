@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"reflect"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -18,7 +17,6 @@ type Product struct {
 
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
-
 func dbConn() (db *sql.DB) {
 	dbDriver := "sqlite3"
 	dbPath := "./data/gocart_db"
@@ -31,52 +29,14 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-type Handler struct{}
-
-func (h Handler) GET() string {
-return "OK"
-
+type Controller interface {
+	run(w http.ResponseWriter, r *http.Request)
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+type Home struct {
+}
 
-	handler := new(Handler)
-	method := reflect.ValueOf(handler).MethodByName("GET")
-	path := r.URL.Path
-	in := make([]reflect.Value, method.Type().NumIn())
-log.Println(in)
-	response := method.Call(in)
-	fmt.Println(response)
-
-	routes := [][]string{
-		{"/", "Index"},
-		{"/show", "Show"},
-		{"/new", "New"},
-		{"/edit", "Edit"},
-		{"/insert", "Insert"},
-		{"/update", "Update"},
-		{"/delete", "Delete"},
-	}
-	controller := ""
-
-	for i :=0; i<6; i++{
-		log.Println(path)
-		log.Println(routes[i][0])
-		if path == routes[i][0]{
-			log.Println("exists")
-			controller = routes[i][1]
-			break
-		}
-	}
-	if controller != "" {
-	} else {
-		w.WriteHeader(404)
-		fmt.Fprint(w, "custom 404")
-		return
-	}
-
-
-
+func (h *Home) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	selDB, err := db.Query("SELECT * FROM product ORDER BY id ASC")
 	if err != nil {
@@ -99,7 +59,10 @@ log.Println(in)
 	defer db.Close()
 }
 
-func Show(w http.ResponseWriter, r *http.Request) {
+type Show struct {
+}
+
+func (s *Show) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
 	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
@@ -121,11 +84,17 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 }
 
-func New(w http.ResponseWriter, r *http.Request) {
+type CreateNew struct {
+}
+
+func (n *CreateNew) run(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "New", nil)
 }
 
-func Edit(w http.ResponseWriter, r *http.Request) {
+type Edit struct {
+}
+
+func (e *Edit) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
 	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
@@ -147,7 +116,10 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 }
 
-func Insert(w http.ResponseWriter, r *http.Request) {
+type Insert struct {
+}
+
+func (i *Insert) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
@@ -162,7 +134,10 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
-func Update(w http.ResponseWriter, r *http.Request) {
+type Update struct {
+}
+
+func (u *Update) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
@@ -178,7 +153,9 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) {
+type Delete struct{}
+
+func (d *Delete) run(w http.ResponseWriter, r *http.Request) {
 	log.Println("pre DELETE")
 	db := dbConn()
 	product := r.URL.Query().Get("id")
@@ -192,9 +169,40 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
+func Index(w http.ResponseWriter, r *http.Request) {
+	requestPath := r.URL.Path
+	home := new(Home)
+	show := new(Show)
+	cnew := new(CreateNew)
+	edit := new(Edit)
+	insert := new(Insert)
+	update := new(Update)
+	delete := new(Delete)
+	log.Println(requestPath)
+	routes := map[string]Controller{
+		"/":       home,
+		"/show":   show,
+		"/new":    cnew,
+		"/edit":   edit,
+		"/insert": insert,
+		"/update": update,
+		"/delete": delete,
+	}
+
+	for path, controller := range routes {
+		if path == requestPath {
+			controller.run(w, r)
+			return
+		}
+	}
+
+	w.WriteHeader(404)
+	fmt.Fprint(w, "custom 404")
+	return
+}
+
 func main() {
 	log.Println("Server started on: http://localhost:8080")
 	http.HandleFunc("/", Index)
 	http.ListenAndServe(":8080", nil)
 }
-
