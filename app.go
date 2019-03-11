@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Product struct {
@@ -15,6 +15,18 @@ type Product struct {
 }
 
 var tmpl = template.Must(template.ParseGlob("form/*"))
+
+func dbConn() (db *sql.DB) {
+	dbDriver := "sqlite3"
+	dbPath := "./data/gocart_db"
+	db, err := sql.Open(dbDriver, dbPath)
+	statement, _ := db.Prepare("CREATE TABLE IF NOT EXISTS product (id INTEGER PRIMARY KEY, name TEXT)")
+	statement.Exec()
+	if err != nil {
+		panic(err.Error())
+	}
+	return db
+}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
@@ -31,7 +43,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		product.Id = id
+		product.Id = id // cart.Sum(1, 5)
 		product.Name = name
 		res = append(res, product)
 	}
@@ -119,6 +131,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func Delete(w http.ResponseWriter, r *http.Request) {
+	log.Println("pre DELETE")
 	db := dbConn()
 	product := r.URL.Query().Get("id")
 	delForm, err := db.Prepare("DELETE FROM product WHERE id=?")
@@ -129,18 +142,6 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	log.Println("DELETE")
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
-}
-
-func dbConn() (db *sql.DB) {
-	dbDriver := "mysql"
-	dbUser := "root"
-	dbPass := "1234"
-	dbName := "gocart_db"
-	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
-	if err != nil {
-		panic(err.Error())
-	}
-	return db
 }
 
 func main() {

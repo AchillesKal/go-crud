@@ -1,0 +1,9 @@
+version: "2"
+
+services:
+  app:
+    image: golang:1.6.1-alpine
+    volumes:
+      - .:/go/src/gocart
+    working_dir: /go/src/gocart
+    command: go run app.go
