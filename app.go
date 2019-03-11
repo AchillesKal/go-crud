@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"reflect"
 	"database/sql"
 	"html/template"
 	"log"
@@ -16,6 +18,7 @@ type Product struct {
 
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
+
 func dbConn() (db *sql.DB) {
 	dbDriver := "sqlite3"
 	dbPath := "./data/gocart_db"
@@ -28,7 +31,52 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
+type Handler struct{}
+
+func (h Handler) GET() string {
+return "OK"
+
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
+
+	handler := new(Handler)
+	method := reflect.ValueOf(handler).MethodByName("GET")
+	path := r.URL.Path
+	in := make([]reflect.Value, method.Type().NumIn())
+log.Println(in)
+	response := method.Call(in)
+	fmt.Println(response)
+
+	routes := [][]string{
+		{"/", "Index"},
+		{"/show", "Show"},
+		{"/new", "New"},
+		{"/edit", "Edit"},
+		{"/insert", "Insert"},
+		{"/update", "Update"},
+		{"/delete", "Delete"},
+	}
+	controller := ""
+
+	for i :=0; i<6; i++{
+		log.Println(path)
+		log.Println(routes[i][0])
+		if path == routes[i][0]{
+			log.Println("exists")
+			controller = routes[i][1]
+			break
+		}
+	}
+	if controller != "" {
+	} else {
+		w.WriteHeader(404)
+		fmt.Fprint(w, "custom 404")
+		return
+	}
+
+
+
 	db := dbConn()
 	selDB, err := db.Query("SELECT * FROM product ORDER BY id ASC")
 	if err != nil {
@@ -147,11 +195,6 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Println("Server started on: http://localhost:8080")
 	http.HandleFunc("/", Index)
-	http.HandleFunc("/show", Show)
-	http.HandleFunc("/new", New)
-	http.HandleFunc("/edit", Edit)
-	http.HandleFunc("/insert", Insert)
-	http.HandleFunc("/update", Update)
-	http.HandleFunc("/delete", Delete)
 	http.ListenAndServe(":8080", nil)
 }
+
