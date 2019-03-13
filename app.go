@@ -3,9 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"gocart/router"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -64,7 +66,7 @@ type Show struct {
 
 func (s *Show) run(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	nId := r.URL.Query().Get("id")
+	nId := r.URL.Query().Get("id")friends/requests/?fcref=ffi
 	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
@@ -178,7 +180,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	insert := new(Insert)
 	update := new(Update)
 	delete := new(Delete)
-	log.Println(requestPath)
+
 	routes := map[string]Controller{
 		"/":       home,
 		"/show":   show,
@@ -202,7 +204,22 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	r := router.New(Root)
+
 	log.Println("Server started on: http://localhost:8080")
-	http.HandleFunc("/", Index)
-	http.ListenAndServe(":8080", nil)
+	// http.HandleFunc("/", Index)
+	r.Handle("GET", "/", Root)
+	r.Handle("GET", "/users/:name", UserShow)
+
+	http.ListenAndServe(":8080", r)
+
+}
+
+func Root(w http.ResponseWriter, r *http.Request, params url.Values) {
+	fmt.Fprint(w, "Root!\n")
+}
+
+func UserShow(w http.ResponseWriter, r *http.Request, params url.Values) {
+	fmt.Fprintf(w, "Hi %s", params["name"])
 }
