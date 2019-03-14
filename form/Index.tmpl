@@ -17,9 +17,9 @@
       <tr>
         <td>{{ .Id }}</td>
         <td> {{ .Name }} </td>
-        <td><a href="/show?id={{ .Id }}">View</a></td>
-        <td><a href="/edit?id={{ .Id }}">Edit</a></td>
-        <td><a href="/delete?id={{ .Id }}">Delete</a></td>
+        <td><a href="/show/{{ .Id }}">View</a></td>
+        <td><a href="/edit/{{ .Id }}">Edit</a></td>
+        <td><a href="/delete/{{ .Id }}">Delete</a></td>
       </tr>
     {{ end }}
        </tbody>

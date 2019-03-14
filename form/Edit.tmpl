@@ -2,7 +2,7 @@
   {{ template "Header" }}
     {{ template "Menu" }}
    <h2>Edit Name</h2>
-    <form method="POST" action="update">
+    <form method="POST" action="/update">
       <input type="hidden" name="uid" value="{{ .Id }}" />
       <label> Name </label><input type="text" name="name" value="{{ .Name }}"  /><br />
       <input type="submit" value="Save Product" />
