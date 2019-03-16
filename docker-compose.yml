@@ -1,9 +1,15 @@
-version: "2"
+version: '3'
 
 services:
   app:
-    image: golang:1.6.1-alpine
+    build:
+      context: .
+      dockerfile: ./docker/go/Dockerfile
+    container_name: go
     volumes:
-      - .:/go/src/gocart
-    working_dir: /go/src/gocart
-    command: go run app.go
+      - '.:/go/src/app:ro'
+      - './data/:/go/src/app/data'
+    working_dir: /go/src/app
+    command: bash -c "go run *.go"
+    ports:
+      - '8080:8080'

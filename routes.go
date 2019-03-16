@@ -113,6 +113,7 @@ func updateProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
 }
 
 func deleteProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+	log.Println("Delete: Name: " + params["id"][0])
 	db := dbConn()
 	nId := params["id"][0]
 	delForm, err := db.Prepare("DELETE FROM product WHERE id=?")
