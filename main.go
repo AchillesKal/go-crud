@@ -2,12 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 
-	router "github.com/AchillesKal/go-router"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 type Product struct {
@@ -18,11 +19,13 @@ type Product struct {
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func dbConn() (db *sql.DB) {
-	dbDriver := "sqlite3"
-	dbPath := "./data/gocart_db"
-	db, err := sql.Open(dbDriver, dbPath)
-	statement, _ := db.Prepare("CREATE TABLE IF NOT EXISTS product (id INTEGER PRIMARY KEY, name TEXT)")
-	statement.Exec()
+	dbDriver := "mysql"
+	dbUser := "simple_user"
+	dbPass := "simple_user"
+	dbName := "gocrud_db"
+	uri := dbUser + ":" + dbPass + "@tcp(database:3306)/" + dbName
+	fmt.Println(uri)
+	db, err := sql.Open(dbDriver, uri)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -30,15 +33,14 @@ func dbConn() (db *sql.DB) {
 }
 
 func main() {
-	appRouter := router.New(index)
-	log.Println("Server started on: http://localhost:8080")
-	appRouter.Handle("GET", "/", index)
-	appRouter.Handle("GET", "/show/:id", showProduct)
-	appRouter.Handle("GET", "/new", newProduct)
-	appRouter.Handle("GET", "/edit/:id", editProduct)
-	appRouter.Handle("POST", "/insert", insertProduct)
-	appRouter.Handle("POST", "/update", updateProduct)
-	appRouter.Handle("GET", "/delete/:id", deleteProduct)
+	r := mux.NewRouter()
+	r.HandleFunc("/", index)
+	r.HandleFunc("/show/{id}", showProduct)
+	r.HandleFunc("/new", newProduct)
+	r.HandleFunc("/edit/{id}", editProduct)
+	r.HandleFunc("/insert", insertProduct)
+	r.HandleFunc("/update", updateProduct)
+	r.HandleFunc("/delete/{id}", deleteProduct)
 
-	http.ListenAndServe(":8080", appRouter)
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

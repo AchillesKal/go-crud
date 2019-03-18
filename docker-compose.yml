@@ -8,8 +8,27 @@ services:
     container_name: go
     volumes:
       - '.:/go/src/app:ro'
-      - './data/:/go/src/app/data'
+      - './vendor:/go/src/app/vendor'
+      - './data:/go/src/app/data:ro'
     working_dir: /go/src/app
     command: bash -c "go run *.go"
     ports:
       - '8080:8080'
+    links:
+      - "database:database"
+
+  database:
+    image: mysql:5.7
+    container_name: database
+    command: '--init-file /go/src/app/data/init.sql'
+    volumes:
+      - './data/init.sql:/go/src/app/data/init.sql'
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_USER: simple_user
+      MYSQL_PASSWORD: simple_user
+      MYSQL_DATABASE: gocrud_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: '%'
+

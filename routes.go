@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"net/url"
+
+	"github.com/gorilla/mux"
 )
 
-func index(w http.ResponseWriter, r *http.Request, params url.Values) {
+func index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	selDB, err := db.Query("SELECT * FROM product ORDER BY id ASC")
 	if err != nil {
@@ -29,9 +31,10 @@ func index(w http.ResponseWriter, r *http.Request, params url.Values) {
 	defer db.Close()
 }
 
-func showProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+func showProduct(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	nId := params["id"][0]
+	vars := mux.Vars(r)
+	nId := vars["id"]
 
 	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
 	if err != nil {
@@ -53,13 +56,14 @@ func showProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
 	defer db.Close()
 }
 
-func newProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+func newProduct(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "New", nil)
 }
 
-func editProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+func editProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	nId := vars["id"]
 	db := dbConn()
-	nId := params["id"][0]
 	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
@@ -79,7 +83,7 @@ func editProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
 	defer db.Close()
 }
 
-func insertProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+func insertProduct(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
@@ -94,10 +98,8 @@ func insertProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
 	http.Redirect(w, r, "/", 301)
 }
 
-func updateProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
+func updateProduct(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	log.Println("UPDATE: method: " + r.Method)
-
 	if r.Method == "POST" {
 		name := r.FormValue("name")
 		id := r.FormValue("uid")
@@ -106,16 +108,16 @@ func updateProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
 			panic(err.Error())
 		}
 		insForm.Exec(name, id)
-		log.Println("UPDATE: Name: " + name)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
 
-func deleteProduct(w http.ResponseWriter, r *http.Request, params url.Values) {
-	log.Println("Delete: Name: " + params["id"][0])
+func deleteProduct(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("DELETE")
+	vars := mux.Vars(r)
 	db := dbConn()
-	nId := params["id"][0]
+	nId := vars["id"]
 	delForm, err := db.Prepare("DELETE FROM product WHERE id=?")
 	if err != nil {
 		panic(err.Error())
