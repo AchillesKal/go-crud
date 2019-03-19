@@ -20,8 +20,8 @@ var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
-	dbUser := "simple_user"
-	dbPass := "simple_user"
+	dbUser := "root"
+	dbPass := "root"
 	dbName := "gocrud_db"
 	uri := dbUser + ":" + dbPass + "@tcp(database:3306)/" + dbName
 	fmt.Println(uri)
