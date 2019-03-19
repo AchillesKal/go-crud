@@ -9,7 +9,7 @@ services:
     volumes:
       - '.:/go/src/app:ro'
       - './vendor:/go/src/app/vendor'
-      - './data:/go/src/app/data:ro'
+      - './database:/go/src/app/database:ro'
     working_dir: /go/src/app
     command: bash -c "go run *.go"
     ports:
@@ -20,9 +20,9 @@ services:
   database:
     image: mysql:5.7
     container_name: database
-    command: '--init-file /go/src/app/data/init.sql'
+    command: '--init-file /go/src/app/database/init.sql'
     volumes:
-      - './data/init.sql:/go/src/app/data/init.sql'
+      - './data/init.sql:/go/src/app/database/init.sql'
     ports:
       - '3306:3306'
     environment:
