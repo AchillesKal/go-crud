@@ -2,13 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 )
 
 type Product struct {
@@ -19,16 +18,13 @@ type Product struct {
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func dbConn() (db *sql.DB) {
-	dbDriver := "mysql"
-	dbUser := "root"
-	dbPass := "root"
-	dbName := "gocrud_db"
-	uri := dbUser + ":" + dbPass + "@tcp(database:3306)/" + dbName
-	fmt.Println(uri)
-	db, err := sql.Open(dbDriver, uri)
+	connStr := "user=pqgouser dbname=gocrud_db sslmode=disable"
+	db, err := sql.Open("postgres", connStr)
+
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err)
 	}
+
 	return db
 }
 
