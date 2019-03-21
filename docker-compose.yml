@@ -14,11 +14,12 @@ services:
     ports:
       - '8080:8080'
     links:
-      - db:db
+      - database:database
     environment:
-      DATABASE_URL: "postgres://USER:PASSWORD@db:5432/gocrud_db?sslmode=disable"
+      DATABASE_URL: "postgres://pqgouser@database:5432/gocrud_db?sslmode=disable"
 
   database:
+    container_name: database
     build:
       context: .
       dockerfile: ./docker/database/Dockerfile

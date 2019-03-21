@@ -1,7 +1,8 @@
 FROM postgres
 
-ENV POSTGRES_DB gocrud_db
+ENV POSTGRES_USER=pqgouser \
+  POSTGRES_DB=gocrud_db
 
-COPY ./sql/init.sql /docker-entrypoint-initdb.d/
+COPY ./docker/database/sql/init.sql /docker-entrypoint-initdb.d/
 
 EXPOSE 5432

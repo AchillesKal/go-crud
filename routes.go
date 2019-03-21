@@ -87,7 +87,7 @@ func insertProduct(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
-		insForm, err := db.Prepare("INSERT INTO product(name) VALUES(?)")
+		insForm, err := db.Prepare("INSERT INTO product(NAME) VALUES(?)")
 		if err != nil {
 			panic(err.Error())
 		}

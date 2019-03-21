@@ -18,7 +18,7 @@ type Product struct {
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func dbConn() (db *sql.DB) {
-	connStr := "user=pqgouser dbname=gocrud_db sslmode=disable"
+	connStr := "host=database user=pqgouser dbname=gocrud_db sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 
 	if err != nil {
