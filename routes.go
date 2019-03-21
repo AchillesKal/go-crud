@@ -36,7 +36,7 @@ func showProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	nId := vars["id"]
 
-	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
+	selDB, err := db.Query("SELECT * FROM product WHERE id=$1", nId)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -64,7 +64,7 @@ func editProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	nId := vars["id"]
 	db := dbConn()
-	selDB, err := db.Query("SELECT * FROM product WHERE id=?", nId)
+	selDB, err := db.Query("SELECT * FROM product WHERE id=$1", nId)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -87,7 +87,7 @@ func insertProduct(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
-		insForm, err := db.Prepare("INSERT INTO product(NAME) VALUES(?)")
+		insForm, err := db.Prepare("INSERT INTO product(name) VALUES($1)")
 		if err != nil {
 			panic(err.Error())
 		}
@@ -103,7 +103,7 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		name := r.FormValue("name")
 		id := r.FormValue("uid")
-		insForm, err := db.Prepare("UPDATE product SET name=? WHERE id=?")
+		insForm, err := db.Prepare("UPDATE product SET name=$1 WHERE id=$2")
 		if err != nil {
 			panic(err.Error())
 		}
@@ -118,7 +118,7 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	db := dbConn()
 	nId := vars["id"]
-	delForm, err := db.Prepare("DELETE FROM product WHERE id=?")
+	delForm, err := db.Prepare("DELETE FROM product WHERE id=$1")
 	if err != nil {
 		panic(err.Error())
 	}
